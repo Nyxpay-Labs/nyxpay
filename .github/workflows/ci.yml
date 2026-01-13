@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      
+      - name: Install Solana
+        uses: mvines/solana-action@v1
+        with:
+          version: 1.18.0
+      
+      - name: Build program
+        run: |
+          cd programs/nyxpay_program
+          cargo build-sbf
+      
+      - name: Run tests
+        run: |
+          cd programs/nyxpay_program
+          cargo test-sbf
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+      
+      - name: Check formatting
+        run: |
+          cd programs/nyxpay_program
+          cargo fmt -- --check
+      
+      - name: Run clippy
+        run: |
+          cd programs/nyxpay_program
+          cargo clippy -- -D warnings
